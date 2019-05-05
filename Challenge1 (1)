@@ -1,0 +1,55 @@
+/*
+Qual o nome, email e telefone das 5 pessoas que mais geraram receita?
+Resposta: 
+
+Heloísa Ordonhes
+joshua_prosacco@gmail.com
+(51) 91972-9639
+
+Mirella Soares
+velia.pagac@hotmail.com
+(43) 97290-9288
+
+Fernanda Resende
+charlott.ledner@live.com
+(33) 92311-0450
+
+Sophie Banheira
+null
+(24) 91404-3805
+
+Alícia Pinheira
+gregorio.deckow@bol.com.br
+(51) 91012-4779
+
+Explicação:
+1 - Criei uma subquery para identificar a data mais recente de cada pessoa, excluindo os telefones nulos;
+2 - Com posse dos id's, relaciono com a query principal trazendo as 5 maiores receitas do propertie action buy;
+3 - Relaciono novamente no contexto identify para localizar as características de cada pessoa.
+*/
+
+select a.id, 
+c.traits.name,
+c.traits.email,
+c.traits.phone,
+sum(a.properties.revenue) revenue
+from `dito-data-scientist-challenge.tracking.dito` a
+  join (
+        select id, max(timestamp) dat_recente
+        from `dito-data-scientist-challenge.tracking.dito`
+        where type = 'identify'
+        and traits.phone is not null
+        group by id
+       )b on a.id = b.id
+  join `dito-data-scientist-challenge.tracking.dito` c
+      on a.id = c.id
+      and c.type = 'identify'
+      and b.dat_recente = c.timestamp
+where a.type = 'track'
+and a.properties.action = 'buy'
+group by id,
+c.traits.name,
+c.traits.email,
+c.traits.phone
+order by revenue desc
+limit 5
