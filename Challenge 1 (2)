@@ -1,0 +1,23 @@
+/*
+De quantos em quantos dias, em média, as pessoas compram? Use a mediana como média
+Resposta: 8
+
+Explicação:
+1 – Identifico a quantidade de dias distintos que cada pessoa comprou, considero apenas as receitas válidas, com valor maior que zero;
+2 – Utilizo a função percentile_cont para calcular a mediana da quantidade de dias.
+
+*/
+
+select max(median) mediana_qtd_dias from 
+                    (select percentile_cont(qtd_dias, 0.5) over () as median
+                      from
+                        (
+                          select id, count(distinct format_timestamp("%F",timestamp)) qtd_dias
+                          from `dito-data-scientist-challenge.tracking.dito`
+                          where type = 'track'
+                          and properties.action = 'buy'
+                          and properties.revenue > 0
+                          group by id
+                          order by qtd_dias
+                        ) a
+)
